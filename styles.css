@@ -1,0 +1,48 @@
+.container {
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ddd;
+    position: relative;
+}
+
+.container-header {
+    display: flex;
+    margin-bottom: 10px;
+    align-content: baseline;
+}
+
+.animation-name {
+    margin: 0;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.button {
+    margin-left: 15px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    background: none;
+    border: 1px solid #ccc;
+}
+
+.block {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    padding: 5px;
+    box-sizing: border-box;
+    background-color: #8d3f8d;
+    border: 2px solid #421456;
+    color: white;
+    transition-property: all;
+    transition-timing-function: ease;
+}
+
+.hide {
+    opacity: 0;
+}
+.show {
+    opacity: 1;
+}
