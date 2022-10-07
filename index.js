@@ -173,22 +173,3 @@ function animaster() {
         },
     };
 }
-
-function Song(title, author, album) {
-    this.title = title;
-    this.author = author;
-    this.album = album;
-}
-
-Song.prototype.getFullName = function () {
-    let { title, author, album } = this;
-    return `композиция «${title}», исполнитель ${author}, альбом «${album}»`;
-};
-
-Song.prototype.setYear = function (year) {
-    this.year = year;
-};
-
-Song.prototype.setTitle = function (title) {
-    this.title = title;
-};
