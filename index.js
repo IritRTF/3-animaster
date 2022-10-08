@@ -7,7 +7,7 @@ function addListeners() {
         .getElementById('fadeInPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeInBlock');
-            animaster().fadeIn(block, 5000);
+            animaster().addFadeIn(5000).play(block);
         });
 
     document.getElementById('movePlay').addEventListener('click', function () {
@@ -21,19 +21,22 @@ function addListeners() {
 
     document.getElementById('scalePlay').addEventListener('click', function () {
         const block = document.getElementById('scaleBlock');
-        animaster().scale(block, 1000, 1.25);
+        animaster().addScale(1000, 1.25).play(block);
     });
     document
         .getElementById('fadeOutPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeOutBlock');
-            animaster().fadeOut(block, 5000);
+            animaster().addFadeOut(5000).play(block);
         });
     document
         .getElementById('moveAndHidePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
-            moveAndHide = animaster().moveAndHide(block, 5000);
+            moveAndHide = animaster()
+                .addMove(2000, { x: 100, y: 20 })
+                .addFadeOut(3000)
+                .play(block);
         });
     document
         .getElementById('moveAndHideReset')
@@ -44,13 +47,20 @@ function addListeners() {
         .getElementById('showAndHidePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('showAndHideBlock');
-            animaster().showAndHide(block, 5000);
+            animaster()
+                .addFadeIn(1000)
+                .addDelay(1000)
+                .addFadeOut(1000)
+                .play(block);
         });
     document
         .getElementById('heartBeatingPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
-            hearBeating = animaster().heartBeating(block);
+            hearBeating = animaster()
+                .addScale(500, 1.4)
+                .addScale(500, 1)
+                .play(block, true);
         });
     document
         .getElementById('heartBeatingStop')
@@ -85,9 +95,7 @@ function animaster() {
         element.style.transitionDuration = null;
         element.style.transform = null;
     };
-    const delayAnimation = function (animation, element, delayTime) {
-        if (delayTime === 0) animation(element);
-    };
+
     return {
         /**
          * Блок плавно появляется из прозрачного.
@@ -186,37 +194,96 @@ function animaster() {
             });
             return this;
         },
-        play: function (element) {
-            console.log(this._steps);
+        addFadeIn: function (duration) {
+            this._steps.push({
+                name: 'fadeIn',
+                duration: duration,
+            });
+            return this;
+        },
+        addFadeOut: function (duration) {
+            this._steps.push({
+                name: 'fadeOut',
+                duration: duration,
+            });
+            return this;
+        },
+        addDelay: function (duration) {
+            this._steps.push({
+                name: 'delay',
+                duration: duration,
+            });
+            return this;
+        },
+        play: function (element, isCycled = false) {
+            let delay = this._steps.reduce(
+                (prev, cur) => prev.duration + cur.duration
+            );
+            if (isCycled) {
+                this._createAnimation(element, this._steps);
+                let timer = setInterval(
+                    this._createAnimation,
+                    delay,
+                    element,
+                    this._steps
+                );
+
+                return;
+            }
+            this._createAnimation(element, this._steps);
+            this._steps = [];
+        },
+        _steps: [],
+        _createAnimation: function (element, steps) {
+            console.log(steps);
             let delay = 0;
-            for (let animation of this._steps) {
+            for (let animation of steps) {
                 switch (animation.name) {
                     case 'move':
-                        if (delay === 0) {
-                            this.move(
-                                element,
-                                animation.duration,
-                                animation.translation
-                            );
-                            delay += animation.duration;
-                        } else {
-                            setTimeout(
-                                this.move,
-                                delay,
-                                element,
-                                animation.duration,
-                                animation.translation
-                            );
-                            delay += animation.duration;
-                        }
+                        setTimeout(
+                            this.move,
+                            delay,
+                            element,
+                            animation.duration,
+                            animation.translation
+                        );
+                        delay += animation.duration;
                         break;
-
+                    case 'scale':
+                        setTimeout(
+                            this.scale,
+                            delay,
+                            element,
+                            animation.duration,
+                            animation.ratio
+                        );
+                        delay += animation.duration;
+                        break;
+                    case 'fadeIn':
+                        setTimeout(
+                            this.fadeIn,
+                            delay,
+                            element,
+                            animation.duration
+                        );
+                        delay += animation.duration;
+                        break;
+                    case 'fadeOut':
+                        setTimeout(
+                            this.fadeOut,
+                            delay,
+                            element,
+                            animation.duration
+                        );
+                        delay += animation.duration;
+                        break;
+                    case 'delay':
+                        delay += animation.duration;
+                        setTimeout(null, delay);
                     default:
                         break;
                 }
             }
-            this._steps = [];
         },
-        _steps: [],
     };
 }
