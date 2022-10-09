@@ -2,60 +2,24 @@ addListeners();
 
 function addListeners() {
     let master = animaster();
-    document.getElementById('fadeInPlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('fadeInBlock');
-            let fadeIn = master.fadeIn(block, 5000);
-            document.getElementById('fadeInReset')
-            .addEventListener('click', fadeIn.reset);
-        });
 
-    document.getElementById('fadeOutPlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('fadeOutBlock');
-            let fadeOut = master.fadeOut(block, 5000);
-            document.getElementById('fadeOutReset')
-            .addEventListener('click', fadeOut.reset);
-        });
+    function addAnimation(name,nameReset, ...args){
+        document.getElementById(name + 'Play')
+            .addEventListener('click', function () {
+                const block = document.getElementById(name + 'Block');
+                let func = master[name](block,...args);
+                document.getElementById(name + nameReset)
+                .addEventListener('click', func[nameReset.toLowerCase()]);
+            });
+    }
 
-    document.getElementById('movePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('moveBlock');
-            let move = master.move(block, 1000, {x: 100, y: 0});
-            document.getElementById('moveReset')
-            .addEventListener('click', move.reset);
-        });
-
-    document.getElementById('scalePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('scaleBlock');
-            let scale = master.scale(block, 1000, 1.25);
-            document.getElementById('scaleReset')
-            .addEventListener('click', scale.reset);
-        });
-
-    document.getElementById('moveAndHidePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('moveAndHideBlock');
-            
-            let moveAndHide = master.moveAndHide(block, 5000, {x: 100, y: 20});
-            document.getElementById('moveAndHideReset')
-            .addEventListener('click', moveAndHide.reset);
-        });
-    document.getElementById('showAndHidePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('showAndHideBlock');
-            let showAndHide = master.showAndHide(block, 3000);
-            document.getElementById('showAndHideReset')
-            .addEventListener('click', showAndHide.reset);
-        });
-        document.getElementById('heartBeatingPlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('heartBeatingBlock');
-            let heartBeating = master.heartBeating(block, 500, 1.4);
-            document.getElementById('heartBeatingStop')
-                .addEventListener('click', heartBeating.stop);
-        });
+    addAnimation('fadeIn', 'Reset', 5000);
+    addAnimation('fadeOut', 'Reset', 5000);
+    addAnimation('move', 'Reset', 1000, {x: 100, y: 0});
+    addAnimation('scale', 'Reset', 1000, 1.25);
+    addAnimation('moveAndHide', 'Reset', 5000, {x: 100, y: 20});
+    addAnimation('showAndHide', 'Reset', 5000);
+    addAnimation('heartBeating', 'Stop', 500, 1.4);
     
 }
 
