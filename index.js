@@ -1,5 +1,11 @@
 addListeners();
 
+/*
+* move + scale - НЕ РАБОТАЮТ!!! (изза того что, в move в ratio передается нулл, а в scale, translation = null)
+* поэтому либо их нужно менять, либо менять работу getTransformer, чтобы он просто не менял
+* исходное местоположение и исходный размер
+*/
+
 function addListeners() {
 /*
 // старая версия
@@ -27,11 +33,15 @@ function addListeners() {
 
     // новая версия
 
-    function addAnimation(animation, name, nameReset){
+    const a = animaster().addMove(111, {x: 10, y: -10})
+    const b = a.addFadeOut(400);
+
+
+    function addAnimation(animation, name, nameReset, cycled = false){
         document.getElementById(name + 'Play')
             .addEventListener('click', function () {
                 const block = document.getElementById(name + 'Block');
-                let reset = animation.play(block);
+                let reset = animation.play(block, cycled);
                 document.getElementById(name + nameReset)
                 .addEventListener('click', reset.reset);
             });
@@ -61,8 +71,16 @@ function addListeners() {
     addAnimation(animaster()
     .addScale(500, 1.4)
     .addScale(500, 1),
-                'heartBeating', 'Stop');
+                'heartBeating', 'Stop', true);
 
+
+
+    const customAnimation = animaster()
+                .addMove(800, {x: 40, y: 40})
+                .addMove(800, {x: 80, y: 0})
+                .addMove(800, {x: 40, y: -40})
+                .addMove(800, {x: 0, y: 0})
+    addAnimation(customAnimation, "custom","Reset", true);
 }
 
 function getTransform(translation, ratio) {
@@ -120,6 +138,7 @@ function animaster(){
          * @param duration — Продолжительность анимации в миллисекундах
          * @param translation — объект с полями x и y, обозначающими смещение блока
          */
+
         move(element, duration, translation) {
             element.style.transitionDuration = `${duration}ms`;
             element.style.transform = getTransform(translation, null);
@@ -133,7 +152,7 @@ function animaster(){
          * @param ratio — во сколько раз увеличить/уменьшить. Чтобы уменьшить, нужно передать значение меньше 1
          */
         scale(element, duration, ratio) {
-            element.style.transitionDuration =  `${duration}ms`;
+            element.style.transitionDuration = `${duration}ms`;
             element.style.transform = getTransform(null, ratio);
             return {reset(){resetMoveAndScale(element)}};
         },
@@ -181,58 +200,84 @@ function animaster(){
 
         delay(duration){
             let timer = setTimeout(null, duration);
+            this._timers.push(timer);
             return {reset(){clearTimeout(timer);}};
         },
 
         addMove(duration, translation) {
-            this._steps.push({
+            let clone = this._getClone();
+            clone._steps.push({
                 name: 'move',
                 duration: duration,
                 args:[translation],
             });
-            return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            return clone;
         },
 
         addScale(duration, ratio) {
-            this._steps.push({
+            let clone = this._getClone();
+            clone._steps.push({
                 name: 'scale',
                 duration: duration,
                 args: [ratio],
             });
-            return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            return clone;
         },
 
         addFadeIn (duration) {
-            this._steps.push({
+            let clone = this._getClone();
+            clone._steps.push({
                 name: 'fadeIn',
                 duration: duration,
                 args:[]
             });
-            return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            return clone;
         },
 
         addFadeOut (duration) {
-            this._steps.push({
+            let clone = this._getClone();
+            clone._steps.push({
                 name: 'fadeOut',
                 duration: duration,
                 args:[]
             });
-            return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            return clone;
         },
 
         addDelay (duration) {
-            this._steps.push({
+            let clone = this._getClone();
+            clone._steps.push({
                 name: 'delay',
                 duration: duration,
                 args:[]
             });
-            return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            return clone;
         },
 
-        play(element){
+        play(element, cycled = false){
             console.log(this._steps);
+            let resets = [];
+            let timer = null;
+            if (!cycled){
+                this._createAnimation(element, resets);
+            }
+            else{
+                let delay = this._createAnimation(element, resets);
+                timer = setInterval(() =>{
+                    this._createAnimation(element, resets);                    
+                    this._timers.push(setTimeout(() => {this._timers = []; resets = []}, delay))
+                }, delay);
+            }
+
+            return {reset: () => {
+                this._timers.reverse().forEach(timer => clearInterval(timer));
+                resets.reverse().forEach(resetFunc => resetFunc(element));
+                clearInterval(timer);
+            }}
+        },
+
+        _createAnimation(element, resets){
             let delay = 0;
-            let resets = []
             for (let animation of this._steps) {
                 if( animation.name === 'fadeOut'){
                     resets.push(resetFadeOut)
@@ -246,10 +291,16 @@ function animaster(){
                 this._timers.push(setTimeout(this[animation.name], delay, element, animation.duration, ...animation.args));
                 delay += animation.duration;
             }
-            return {reset: () => {
-                this._timers.forEach(timer => clearInterval(timer));
-                resets.forEach(resetFunc => resetFunc(element));
-            }}
+            return delay;
         },
+
+        _getClone(){
+            let clone = Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
+            clone._steps = []
+            clone._timers = []
+            this._steps.forEach(step => clone._steps.push(step));
+            this._timers.forEach(timer => clone._timers.push(timer));
+            return clone;
+        }
     }
 }
