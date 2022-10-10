@@ -47,39 +47,27 @@ function addListeners() {
             });
     }
 
-    addAnimation(animaster().addFadeIn(5000),'fadeIn', 'Reset');
-    addAnimation(animaster().addFadeOut(5000), 'fadeOut', 'Reset');
-
-    addAnimation(animaster()
-                    .addMove(500, { x: 50, y: 5 })
-                    .addMove(500, { x: 50, y: -20 })
-                    .addMove(500, { x: 50, y: 20 }),
-                'move', 'Reset');
-
-    addAnimation(animaster().addScale(1000, 1.25), 'scale', 'Reset');
-
-    addAnimation(animaster().addMove(2000, { x: 100, y: 20 }).addFadeOut(3000),
-    'moveAndHide',
-     'Reset');
-     
-    addAnimation(animaster()
-    .addFadeIn(1000)
-    .addDelay(1000)
-    .addFadeOut(1000),
-                'showAndHide', 'Reset');
+    const FADE_IN = animaster().addFadeIn(5000);
+    const FADE_OUT = animaster().addFadeOut(5000);
+    const MOVE = animaster().addMove(500, { x: 50, y: 5 }).addMove(500, { x: 50, y: -20 }).addMove(500, { x: 50, y: 20 });
+    const SCALE = animaster().addScale(1000, 1.25);
+    const MOVE_AND_HIDE = animaster().addMove(1000, { x: 100, y: 20 }).addFadeOut(1500);
+    const SHOW_AND_HIDE = animaster().addFadeIn(1000).addDelay(1000).addFadeOut(1000);
+    const HEART_BEATING = animaster().addScale(500, 1.4).addScale(500, 1);
     
-    addAnimation(animaster()
-    .addScale(500, 1.4)
-    .addScale(500, 1),
-                'heartBeating', 'Stop', true);
-
-
-
     const customAnimation = animaster()
                 .addMove(800, {x: 40, y: 40})
                 .addMove(800, {x: 80, y: 0})
                 .addMove(800, {x: 40, y: -40})
                 .addMove(800, {x: 0, y: 0})
+
+    addAnimation(FADE_IN,'fadeIn', 'Reset');
+    addAnimation(FADE_OUT, 'fadeOut', 'Reset');
+    addAnimation(MOVE,'move', 'Reset');
+    addAnimation(SCALE, 'scale', 'Reset');
+    addAnimation(MOVE_AND_HIDE, 'moveAndHide','Reset', true);
+    addAnimation(SHOW_AND_HIDE, 'showAndHide', 'Reset', true);
+    addAnimation(HEART_BEATING, 'heartBeating', 'Stop', true);
     addAnimation(customAnimation, "custom","Reset", true);
 }
 
@@ -199,9 +187,6 @@ function animaster(){
         },
 
         delay(duration){
-            let timer = setTimeout(null, duration);
-            this._timers.push(timer);
-            return {reset(){clearTimeout(timer);}};
         },
 
         addMove(duration, translation) {
@@ -258,15 +243,25 @@ function animaster(){
             console.log(this._steps);
             let resets = [];
             let timer = null;
+
+            let clear = () => {
+                console.log(new Date().getSeconds());
+                this._timers.reverse().forEach(timer => clearInterval(timer));
+                resets.reverse().forEach(resetFunc => resetFunc(element));
+                this._timers = [];
+                resets = []
+            }
+
             if (!cycled){
                 this._createAnimation(element, resets);
             }
             else{
                 let delay = this._createAnimation(element, resets);
+                this._timers.push(setTimeout(clear, delay));
                 timer = setInterval(() =>{
                     this._createAnimation(element, resets);                    
-                    this._timers.push(setTimeout(() => {this._timers = []; resets = []}, delay))
-                }, delay);
+                    this._timers.push(setTimeout(clear, delay))
+                }, delay + 50);
             }
 
             return {reset: () => {
