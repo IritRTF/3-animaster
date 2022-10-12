@@ -1,10 +1,10 @@
 addListeners();
-
+//Старая версия
 function addListeners() {
     document.getElementById('fadeInPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeInBlock');
-            animaster().fadeIn(block, 5000);
+            animaster().fadeIn(block, 1000);
         });
 
     document.getElementById('fadeInReset')
@@ -16,7 +16,7 @@ function addListeners() {
     document.getElementById('fadeOutPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeOutBlock');
-            animaster().fadeOut(block, 5000);
+            animaster().fadeOut(block, 1000);
         });
 
     document.getElementById('fadeOutReset')
@@ -51,25 +51,38 @@ function addListeners() {
     document.getElementById('showAndHidePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('showAndHideBlock');
-            animaster().showAndHide(block, 999);
+            animaster().showAndHide(block, 1000);
         });
         
     document.getElementById('moveAndHidePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
             animaster().moveAndHide(block, 1000, {x: 100, y: 20});
-    });
+        });
+
+    document.getElementById('moveAndHideReset')
+        .addEventListener('click', function () {
+            const block = document.getElementById('moveAndHideBlock');
+            animaster().resetMoveAndHide(block);
+        });
     
     document.getElementById('heartBeatingPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
             animaster().heartBeating(block);
-    });
+        });
     
     document.getElementById('heartBeatingStop')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
             clearInterval(heartInterval);
+        });
+
+    // ++
+    document.getElementById('heartBeatingStop')
+        .addEventListener('click', function () {
+            const block = document.getElementById('heartBeatingBlock');
+           
     });
 }
 
@@ -143,22 +156,56 @@ function getTransform(translation, ratio) {
 
 function animaster(){
     let obj = {
+
+        _steps: [],
+
+        set steps(value){
+            this._steps = value;
+        },
+
+        get steps(){
+            return this._steps
+        },
+
+        addMove: function(duration, translation, element){
+            this._steps.push(move())
+            return this;
+        },
+
+        play: function(){
+
+        },
+
+        //Вынести служ функции из obj?
         resetFadeIn: function(element){
+            element.style.transitionDuration = null;
             element.classList.remove('show');
             element.classList.add('hide');
-            element.style.opacity = null;
+            // element.style.opacity = null; //transitionDuration
         },
 
         resetFadeOut: function(element){
+            element.style.transitionDuration = null;
             element.classList.add('show');
             element.classList.remove('hide');
-            element.style.opacity = null;
+            //element.style.opacity = null; //transitionDuration
         },
+
         resetMoveAndScale: function(element){
+            element.style.transitionDuration = null;
             element.style.transform = getTransform(null, null);
             element.style.opacity = null;
+        },
+
+        resetMoveAndHide: function(element){
+            console.log('click');
+            element.style.transitionDuration = null;
+            element.classList.add('show');
+            element.classList.remove('hide');
+            element.style.transform =  getTransform(null, null);
         }
     };
+
     obj.fadeIn = fadeIn;
     obj.fadeOut = fadeOut;
     obj.showAndHide = showAndHide;
@@ -166,5 +213,6 @@ function animaster(){
     obj.heartBeating = heartBeating;
     obj.move = move;
     obj.scale = scale;
+
     return obj;
 }
