@@ -6,6 +6,7 @@ addListeners();
 * исходное местоположение и исходный размер
 */
 
+
 function addListeners() {
 /*
 // старая версия
@@ -51,6 +52,7 @@ function addListeners() {
     const FADE_OUT = animaster().addFadeOut(5000);
     const MOVE = animaster().addMove(500, { x: 50, y: 5 }).addMove(500, { x: 50, y: -20 }).addMove(500, { x: 50, y: 20 });
     const SCALE = animaster().addScale(1000, 1.25);
+    const ROTATE = animaster().addRotate(2000, 180);
     const MOVE_AND_HIDE = animaster().addMove(1000, { x: 100, y: 20 }).addFadeOut(1500);
     const SHOW_AND_HIDE = animaster().addFadeIn(1000).addDelay(1000).addFadeOut(1000);
     const HEART_BEATING = animaster().addScale(500, 1.4).addScale(500, 1);
@@ -65,10 +67,11 @@ function addListeners() {
     addAnimation(FADE_OUT, 'fadeOut', 'Reset');
     addAnimation(MOVE,'move', 'Reset');
     addAnimation(SCALE, 'scale', 'Reset');
+    addAnimation(ROTATE, "rotate", "Reset");
     addAnimation(MOVE_AND_HIDE, 'moveAndHide','Reset', true);
     addAnimation(SHOW_AND_HIDE, 'showAndHide', 'Reset', true);
     addAnimation(HEART_BEATING, 'heartBeating', 'Stop', true);
-    addAnimation(customAnimation, "custom","Reset", true);
+    addAnimation(customAnimation, "custom", "Reset", true);
 }
 
 function getTransform(translation, ratio) {
@@ -145,6 +148,13 @@ function animaster(){
             return {reset(){resetMoveAndScale(element)}};
         },
         
+        rotate(element, duration, angle){
+            element.style.transitionDuration = `${duration}ms`;
+            element.style.transform = `rotate(${-angle}deg)`;
+            return {reset(){resetMoveAndScale(element)}}
+        },
+
+
         moveAndHide(element, duration, translation) {
             this.move(element, (2 * duration) / 5, translation);
             let timer = setTimeout(
@@ -186,6 +196,9 @@ function animaster(){
             }}
         },
 
+        //по факту реализации - это заглушка, чтоб ошибок не было, смысла сюда что то писать не имеет - 
+        //только засоряет стек(ну, если бы в js было бы что то вроде Thread.Slepp, то, наверное, этот метод
+        // имел смысл)
         delay(duration){
         },
 
@@ -239,6 +252,16 @@ function animaster(){
             return clone;
         },
 
+        addRotate(duration, angle){
+            let clone = this._getClone();
+            clone._steps.push({
+                name: 'rotate',
+                duration: duration,
+                args:[angle]
+            });
+            return clone;
+        },
+
         play(element, cycled = false){
             console.log(this._steps);
             let resets = [];
@@ -260,7 +283,7 @@ function animaster(){
                 this._timers.push(setTimeout(clear, delay));
                 timer = setInterval(() =>{
                     this._createAnimation(element, resets);                    
-                    this._timers.push(setTimeout(clear, delay))
+                    this._timers.push(setTimeout(clear, delay + 15))
                 }, delay + 50);
             }
 
@@ -280,7 +303,7 @@ function animaster(){
                 else if( animation.name === 'fadeIn'){
                     resets.push(resetFadeIn)
                 }
-                else if(animation.name == 'scale' || animation.name == 'move'){
+                else if(animation.name == 'scale' || animation.name == 'move' || animation.name == 'rotate'){
                     resets.push(resetMoveAndScale);
                 }
                 this._timers.push(setTimeout(this[animation.name], delay, element, animation.duration, ...animation.args));
