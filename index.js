@@ -1,10 +1,25 @@
 addListeners();
-//Старая версия
+
+const customAnimation = animaster()
+    .addMove(200, {x: 40, y: 40})
+    .addScale(800, 1.3)
+    .addMove(200, {x: 80, y: 0})
+    .addScale(800, 1)
+    .addMove(200, {x: 40, y: -40})
+    .addScale(800, 0.7)
+    .addDelay(20000)
+    .addMove(200, {x: 0, y: 0})
+    .addScale(800, 1)
+    .addFadeOut(200)
+    .addFadeIn(200);
+
+//Старая версия!
 function addListeners() {
     document.getElementById('fadeInPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeInBlock');
-            animaster().fadeIn(block, 1000);
+            //animaster().fadeIn(block, 1000);
+            animaster().addFadeIn(1000).play(block);
         });
 
     document.getElementById('fadeInReset')
@@ -16,7 +31,7 @@ function addListeners() {
     document.getElementById('fadeOutPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeOutBlock');
-            animaster().fadeOut(block, 1000);
+            animaster().addFadeOut(1000).play(block);
         });
 
     document.getElementById('fadeOutReset')
@@ -28,7 +43,14 @@ function addListeners() {
     document.getElementById('movePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveBlock');
-            animaster().move(block, 1000, {x: 100, y: 10});
+            // animaster().move(block, 1000, {x: 100, y: 10});
+            customAnimation.play(block); //Открыть при завершении
+        });
+    
+    document.getElementById('scalePlay')
+        .addEventListener('click', function () {
+            const block = document.getElementById('scaleBlock');
+            animaster().scale(block, 1000, 1.25);
         });
 
     // все работает, кайф :) всем бб, завтра еще раз созвонимся, в тг еще спишемся
@@ -41,12 +63,6 @@ function addListeners() {
             animaster().resetMoveAndScale(block2);
         });
     }
-    
-    document.getElementById('scalePlay')
-        .addEventListener('click', function () {
-            const block = document.getElementById('scaleBlock');
-            animaster().scale(block, 1000, 1.25);
-        });
 
     document.getElementById('showAndHidePlay')
         .addEventListener('click', function () {
@@ -79,11 +95,11 @@ function addListeners() {
         });
 
     // ++
-    document.getElementById('heartBeatingStop')
-        .addEventListener('click', function () {
-            const block = document.getElementById('heartBeatingBlock');
+    // document.getElementById('heartBeatingStop')
+    //     .addEventListener('click', function () {
+    //         const block = document.getElementById('heartBeatingBlock');
            
-    });
+    // });
 }
 
 /**
@@ -117,14 +133,16 @@ function scale(element, duration, ratio) {
 }
 
 function moveAndHide(element, duration, translation){
-    move(element, duration*2/5, translation);
-    fadeOut(element, duration*3/5);
+    // move(element, duration*2/5, translation);
+    // fadeOut(element, duration*3/5);
+    animaster().addMove(duration*2/5, translation).addFadeOut(duration*3/5).play(element);
 }
 
 function showAndHide(block, duration)
 {
-    fadeIn(block, duration/3);
-    setTimeout(fadeOut, duration/3, block, duration/3); //работает :)
+    // fadeIn(block, duration/3);
+    // setTimeout(fadeOut, duration/3, block, duration/3); //работает :)
+    animaster().addFadeIn(duration/3).addDelay(duration/3).addFadeOut(duration/3).play(block);
 }
 
 //один удар
@@ -138,9 +156,10 @@ function heartBeat(block)
 
 //много ударов
 function heartBeating(block){
-    // obj = {};
-   heartInterval = setInterval(heartBeat, 100, block)
-    //return obj;
+    obj = {};
+    // heartInterval = setInterval(heartBeat, 100, block)
+    animaster().addScale(500, (10/14)).addDelay(500).addScale(500, 1.4).addDelay(5000).play(block, true);
+    return obj;
 }
 
 function getTransform(translation, ratio) {
@@ -154,41 +173,89 @@ function getTransform(translation, ratio) {
     return result.join(' ');
 }
 
+//Добавление базовых функции
+function addMove(duration, translation) {
+    this._steps.push(["move", duration, translation]);
+    return this;
+}
+
+function addScale(duration, ratio) {
+    this._steps.push(["scale", duration, ratio]);
+    return this;
+}
+
+function addFadeIn(duration) {
+    this._steps.push(["fadeIn", duration]);
+    return this;
+}
+
+function addFadeOut(duration){
+    this._steps.push(["fadeOut", duration]);
+    return this;
+}
+  
+function addDelay(duration){
+    this._steps.push(["delay", duration]);
+    return this;
+}
+
+function playStep(block, isCycled, animation){
+    if (animation._steps.length > 0){
+        step = animation._steps[0];
+        if (!isCycled) 
+            animation._steps.shift();
+        else{
+            animation._steps.push(animation._steps.shift());
+            playAnimationInterval = setInterval(playStep, step[1], block, animation);
+        }
+        switch(step[0]) {
+            case "move":    
+                move(block, step[1], step[2]);
+                break;
+            case 'scale':
+                scale(block, step[1], step[2]);
+                break;               
+            case 'fadeIn':
+                fadeIn(block, step[1]);
+                break;
+            case 'fadeOut':
+                fadeOut(block, step[1]);
+                break;
+            case 'delay':
+                setTimeout(playStep, 1000, step[1], block, animation);
+                break;
+            default:
+                break;
+            }        
+    }
+    else 
+        // clearInterval(playAnimationInterval);
+        animation.reset();
+}
+
+function play(block, isCycled = false){
+    playAnimationInterval = setInterval(playStep, 100, block, isCycled, this);
+    obj = {
+        reset: function(){return block;},
+        stop: function(){return 0;}
+    };
+    return obj;
+}
+
 function animaster(){
     let obj = {
-
         _steps: [],
-
-        set steps(value){
-            this._steps = value;
-        },
-
-        get steps(){
-            return this._steps
-        },
-
-        addMove: function(duration, translation, element){
-            this._steps.push(move())
-            return this;
-        },
-
-        play: function(){
-
-        },
-
         //Вынести служ функции из obj?
         resetFadeIn: function(element){
             element.style.transitionDuration = null;
             element.classList.remove('show');
             element.classList.add('hide');
-            // element.style.opacity = null; //transitionDuration
         },
 
         resetFadeOut: function(element){
             element.style.transitionDuration = null;
             element.classList.add('show');
             element.classList.remove('hide');
-            //element.style.opacity = null; //transitionDuration
         },
 
         resetMoveAndScale: function(element){
@@ -205,7 +272,6 @@ function animaster(){
             element.style.transform =  getTransform(null, null);
         }
     };
-
     obj.fadeIn = fadeIn;
     obj.fadeOut = fadeOut;
     obj.showAndHide = showAndHide;
@@ -213,6 +279,12 @@ function animaster(){
     obj.heartBeating = heartBeating;
     obj.move = move;
     obj.scale = scale;
+    obj.addMove = addMove;
+    obj.addScale = addScale;
+    obj.addDelay = addDelay;
+    obj.play = play;
+    obj.addFadeIn = addFadeIn;
+    obj.addFadeOut = addFadeOut;
 
     return obj;
 }
