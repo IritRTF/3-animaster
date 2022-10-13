@@ -38,15 +38,12 @@ function addListeners() {
     const a = animaster().addMove(111, {x: 10, y: -10})
     const b = a.addFadeOut(400);
 
-
     function addAnimation(animation, name, nameReset, cycled = false){
+        const block = document.getElementById(name + 'Block');
         document.getElementById(name + 'Play')
-            .addEventListener('click', function () {
-                const block = document.getElementById(name + 'Block');
-                let reset = animation.play(block, cycled);
-                document.getElementById(name + nameReset)
-                .addEventListener('click', reset.reset);
-            });
+            .addEventListener('click', () =>  animation.play(block, cycled));
+        document.getElementById(name + nameReset)
+            .addEventListener('click', () => animation.reset(block));
     }
 
     const FADE_IN = animaster().addFadeIn(5000);
@@ -105,6 +102,8 @@ function animaster(){
     return {
         _steps: [],
         _timers: [],
+        _cycledTimer: null,
+        _resets: [],
         /**
         * Блок плавно появляется из прозрачного.
         * @param element — HTMLElement, который надо анимировать
@@ -203,109 +202,83 @@ function animaster(){
         delay(duration){
         },
 
-        addMove(duration, translation) {
+        _addAnimation(name, duration, ...args){
             let clone = this._getClone();
             clone._steps.push({
-                name: 'move',
+                name: name,
                 duration: duration,
-                args:[translation],
+                args: args,
             });
             return clone;
+        },
+
+        addMove(duration, translation) {
+            return this._addAnimation('move', duration, translation);
         },
 
         addScale(duration, ratio) {
-            let clone = this._getClone();
-            clone._steps.push({
-                name: 'scale',
-                duration: duration,
-                args: [ratio],
-            });
-            return clone;
+            return this._addAnimation('scale', duration, ratio);
         },
 
         addFadeIn (duration) {
-            let clone = this._getClone();
-            clone._steps.push({
-                name: 'fadeIn',
-                duration: duration,
-                args:[]
-            });
-            return clone;
+            return this._addAnimation('fadeIn', duration);
         },
 
         addFadeOut (duration) {
-            let clone = this._getClone();
-            clone._steps.push({
-                name: 'fadeOut',
-                duration: duration,
-                args:[]
-            });
-            return clone;
+            return this._addAnimation('fadeOut', duration);
         },
 
         addDelay (duration) {
-            let clone = this._getClone();
-            clone._steps.push({
-                name: 'delay',
-                duration: duration,
-                args:[]
-            });
-            return clone;
+            return this._addAnimation('delay', duration);
         },
 
         addRotate(duration, angle){
-            let clone = this._getClone();
-            clone._steps.push({
-                name: 'rotate',
-                duration: duration,
-                args:[angle]
-            });
-            return clone;
+            return this._addAnimation('rotate', duration, angle);
         },
 
         play(element, cycled = false){
-            console.log(this._steps);
-            let resets = [];
-            let timer = null;
-
-            let clear = () => {
-                console.log(new Date().getSeconds());
-                this._timers.reverse().forEach(timer => clearInterval(timer));
-                resets.reverse().forEach(resetFunc => resetFunc(element));
-                this._timers = [];
-                resets = []
-            }
 
             if (!cycled){
-                this._createAnimation(element, resets);
-            }
-            else{
-                let delay = this._createAnimation(element, resets);
-                this._timers.push(setTimeout(clear, delay));
-                timer = setInterval(() =>{
-                    this._createAnimation(element, resets);                    
-                    this._timers.push(setTimeout(clear, delay + 15))
-                }, delay + 50);
+                this._createAnimation(element);
+                return {reset: () => this.reset(element)};
             }
 
-            return {reset: () => {
+            let clear = () => {
+                console.log(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
                 this._timers.reverse().forEach(timer => clearInterval(timer));
-                resets.reverse().forEach(resetFunc => resetFunc(element));
-                clearInterval(timer);
-            }}
+                this._resets.reverse().forEach(resetFunc => resetFunc(element));
+                this._timers = [];
+                this._resets = [];
+            }
+
+            let delay = this._createAnimation(element);
+            this._timers.push(setTimeout(clear, delay));
+            
+            this._cycledTimer = setInterval(() =>{
+                this._createAnimation(element);                    
+                this._timers.push(setTimeout(clear, delay + 15))
+            }, delay + 50);
+            
+            return {reset: () => this.reset(element)};
         },
 
-        _createAnimation(element, resets){
+        reset(element){
+            this._timers.reverse().forEach(timer => clearInterval(timer));
+            this._resets.reverse().forEach(resetFunc => resetFunc(element));
+            clearInterval(this._cycledTimer);
+        },
+
+        _createAnimation(element){
             let delay = 0;
             for (let animation of this._steps) {
                 if( animation.name === 'fadeOut'){
-                    resets.push(resetFadeOut)
+                    this._resets.push(resetFadeOut)
                 }
                 else if( animation.name === 'fadeIn'){
-                    resets.push(resetFadeIn)
+                    this._resets.push(resetFadeIn)
                 }
                 else if(animation.name == 'scale' || animation.name == 'move' || animation.name == 'rotate'){
-                    resets.push(resetMoveAndScale);
+                    this._resets.push(resetMoveAndScale);
                 }
                 this._timers.push(setTimeout(this[animation.name], delay, element, animation.duration, ...animation.args));
                 delay += animation.duration;
