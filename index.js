@@ -34,6 +34,7 @@ function addListeners() {
 
     // новая версия
 
+    //проверка работспособности 16 пункта
     const a = animaster().addMove(111, {x: 10, y: -10})
     const b = a.addFadeOut(400);
 
