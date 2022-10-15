@@ -98,7 +98,7 @@ customAnimation.play(element);
 
 Для этого воспользуйся функциями отмены элементарных операций.
 
-- ‽ 14. Добавь метод `buildHandler`, результат которого можно сразу передать в `addEventListener`:
+- ✔ 14. Добавь метод `buildHandler`, результат которого можно сразу передать в `addEventListener`:
 
 ```
 const worryAnimationHandler = animaster()

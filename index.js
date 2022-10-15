@@ -33,7 +33,6 @@ function addListeners() {
 
 
     // новая версия
-
     //проверка работспособности 16 пункта
     const a = animaster().addMove(111, {x: 10, y: -10})
     const b = a.addFadeOut(400);
@@ -104,6 +103,7 @@ function animaster(){
         _timers: [],
         _cycledTimer: null,
         _resets: [],
+        playеd: false,
         /**
         * Блок плавно появляется из прозрачного.
         * @param element — HTMLElement, который надо анимировать
@@ -199,56 +199,63 @@ function animaster(){
         //по факту реализации - это заглушка, чтоб ошибок не было, смысла сюда что то писать не имеет - 
         //только засоряет стек(ну, если бы в js было бы что то вроде Thread.Slepp, то, наверное, этот метод
         // имел смысл)
-        delay(duration){
-        },
+        delay(duration){},
 
-        _addAnimation(name, duration, ...args){
+        _addAnimation(name, duration, resetFunc, ...args){
             let clone = this._getClone();
             clone._steps.push({
                 name: name,
                 duration: duration,
                 args: args,
             });
+            clone._resets.push(resetFunc);
             return clone;
         },
 
         addMove(duration, translation) {
-            return this._addAnimation('move', duration, translation);
+            return this._addAnimation('move', duration, resetMoveAndScale, translation);
         },
 
         addScale(duration, ratio) {
-            return this._addAnimation('scale', duration, ratio);
+            return this._addAnimation('scale', duration, resetMoveAndScale, ratio);
         },
 
         addFadeIn (duration) {
-            return this._addAnimation('fadeIn', duration);
+            return this._addAnimation('fadeIn', duration, resetFadeIn);
         },
 
         addFadeOut (duration) {
-            return this._addAnimation('fadeOut', duration);
+            return this._addAnimation('fadeOut', duration, resetFadeOut);
         },
 
         addDelay (duration) {
-            return this._addAnimation('delay', duration);
+            return this._addAnimation('delay', duration, function(){});
         },
 
         addRotate(duration, angle){
-            return this._addAnimation('rotate', duration, angle);
+            return this._addAnimation('rotate', duration, resetMoveAndScale, angle);
         },
 
         play(element, cycled = false){
+            if (!this.playеd)
+                this.playеd = true;
+            else{
+                this.reset(element);
+                this.playеd = false;
+                return {reset: () => this.reset(element)};
+            }
 
             if (!cycled){
                 this._createAnimation(element);
                 return {reset: () => this.reset(element)};
+
             }
 
             let clear = () => {
                 console.log(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
-                this._timers.reverse().forEach(timer => clearInterval(timer));
-                this._resets.reverse().forEach(resetFunc => resetFunc(element));
+                this._timers.slice().reverse().forEach(timer => clearInterval(timer));
+                this._resets.slice().reverse().forEach(resetFunc => resetFunc(element));
                 this._timers = [];
-                this._resets = [];
             }
 
             let delay = this._createAnimation(element);
@@ -263,23 +270,15 @@ function animaster(){
         },
 
         reset(element){
-            this._timers.reverse().forEach(timer => clearInterval(timer));
-            this._resets.reverse().forEach(resetFunc => resetFunc(element));
+            this.playеd = false;
+            this._timers.slice().reverse().forEach(timer => clearInterval(timer));
+            this._resets.slice().reverse().forEach(resetFunc => resetFunc(element));
             clearInterval(this._cycledTimer);
         },
 
         _createAnimation(element){
             let delay = 0;
             for (let animation of this._steps) {
-                if( animation.name === 'fadeOut'){
-                    this._resets.push(resetFadeOut)
-                }
-                else if( animation.name === 'fadeIn'){
-                    this._resets.push(resetFadeIn)
-                }
-                else if(animation.name == 'scale' || animation.name == 'move' || animation.name == 'rotate'){
-                    this._resets.push(resetMoveAndScale);
-                }
                 this._timers.push(setTimeout(this[animation.name], delay, element, animation.duration, ...animation.args));
                 delay += animation.duration;
             }
@@ -290,9 +289,15 @@ function animaster(){
             let clone = Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(this));
             clone._steps = []
             clone._timers = []
+            clone._resets = []
             this._steps.forEach(step => clone._steps.push(step));
             this._timers.forEach(timer => clone._timers.push(timer));
+            this._resets.forEach(reset => clone._resets.push(reset));
             return clone;
+        },
+
+        buildHandler(){
+            return this.play.bind(this);
         }
     }
 }
