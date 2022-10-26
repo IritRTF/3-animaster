@@ -174,7 +174,7 @@ function animaster() {
         addFadeOut() { return addAction(this, {func: fadeOut, duration: arguments[0]}) },
         addDelay() { return addAction(this, {func: delay, duration: arguments[0]}) },
         play(element, cycled) {
-            let commands = () => {
+            let play_actions = () => {
                 let time = 0 
                 for(let i= 0; i< this._steps.length; i++)
                 {
@@ -184,8 +184,8 @@ function animaster() {
             }
             
             let interval
-            commands();
-            if (cycled) interval = setInterval(() => commands(), this._steps.reduce((a, b) => a.duration + b.duration));
+            play_actions();
+            if (cycled) interval = setInterval(() => play_actions(), this._steps.reduce((a, b) => a.duration + b.duration));
 
             return {
                 reset: () => {
@@ -199,7 +199,7 @@ function animaster() {
             }
         },
         buildHandler(){
-            return (elem) => this.play(elem.target);
+            return (event) => this.play(event.target);
         }
     }
 }
