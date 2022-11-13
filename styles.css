@@ -25,6 +25,7 @@
     font-size: 12px;
     background: none;
     border: 1px solid #ccc;
+    cursor: pointer;
 }
 
 .block {
