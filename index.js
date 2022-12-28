@@ -1,5 +1,17 @@
 addListeners();
 
+
+const customAnimation = animaster()
+    .addMove(200, {x: 40, y: 40})
+    .addScale(800, 1.3)
+    .addMove(200, {x: 80, y: 0})
+    .addScale(800, 1)
+    .addMove(200, {x: 40, y: -40})
+    .addScale(800, 0.7)
+    .addMove(200, {x: 0, y: 0})
+    .addScale(800, 1);
+
+
 function addListeners() {
     let elements = document.getElementsByClassName('resetMoveAndScale')
 
@@ -39,6 +51,12 @@ function addListeners() {
             animaster().scale(block, 1000, 1.25);
         });
 
+    document.getElementById('customPlay')
+        .addEventListener('click', function () {
+            const block = document.getElementById('customBlock');
+            customAnimation.play(block);
+        });
+
 
     document.getElementById('moveAndHidePlay')
         .addEventListener('click', function () {
@@ -67,7 +85,7 @@ function addListeners() {
     document.getElementById('heartBeatingStop')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
-            animaster().heartBeatingStop(block);
+            clearTimeout(heartBeatingTimer)
         });
 
     for (let i = 0; i < elements.length; i++){
@@ -224,8 +242,9 @@ function animaster(){
         resetMoveAndHide: function (element){
             element.style.transform = getTransform(null, null);
             element.style.opacity = null;
-            element.classList.add("show");
             element.classList.remove("hide");
+            element.classList.add("show");
+            
         }
     };
     obj.__steps = [];
