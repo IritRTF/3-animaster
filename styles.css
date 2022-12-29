@@ -6,7 +6,8 @@
     position: relative;
 }
 
-.container-header {
+.container-header 
+{
     display: flex;
     margin-bottom: 10px;
     align-content: baseline;
