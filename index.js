@@ -28,8 +28,7 @@ function addListeners() {
     document.getElementById('moveAndHide')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
-            animaster().moveAndHide(block, 1000, {x: 100, y: 20});
-            animaster()
+            animaster().moveAndHide(block, 3000, {x: 100, y: 20});
         });
 
     // document.getElementById('showAndHide')
@@ -86,13 +85,10 @@ function animaster() {
     }
 
     function moveAndHide(element, duration, translation) {
-        element.style.transitionDuration = `${duration * (2 / 5)}ms`
+        const firstPhase = duration * (2 / 5)
+        element.style.transitionDuration = `${firstPhase}ms`
         element.style.transform = getTransform(translation, null)
-        fadeOut(element, duration * 3 /5)
-        // element.style.transitionDuration = `${duration * (3 / 5)}ms`
-        // element.classList.remove('show');
-        // element.classList.add('hide');
-
+        setTimeout(() => {fadeOut(element,duration * (3 / 5))}, firstPhase)
     }
 
     function showAndHide(element, duration, ratio) {
