@@ -31,11 +31,11 @@ function addListeners() {
             animaster().moveAndHide(block, 3000, {x: 100, y: 20});
         });
 
-    // document.getElementById('showAndHide')
-    //     .addEventListener('click', function () {
-    //         const block = document.getElementById('showAndHideBlock');
-    //         animaster().showAndHide(block, 1000, 1.25);
-    //     });
+    document.getElementById('showAndHide')
+        .addEventListener('click', function () {
+            const block = document.getElementById('showAndHideBlock');
+            animaster().showAndHide(block, 3000);
+        });
     //
     // document.getElementById('heartBeating')
     //     .addEventListener('click', function () {
@@ -91,8 +91,9 @@ function animaster() {
         setTimeout(() => {fadeOut(element,duration * (3 / 5))}, firstPhase)
     }
 
-    function showAndHide(element, duration, ratio) {
-
+    function showAndHide(element, duration) {
+        fadeIn(element, duration*(1/3))
+        setTimeout(() => {fadeOut(element, duration * (1/3))}, duration * (2/3))
     }
 
     function heartBeating(element, duration, ratio) {
