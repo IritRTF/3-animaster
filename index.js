@@ -37,11 +37,18 @@ function addListeners() {
             animaster().showAndHide(block, 3000);
         });
     
-    document.getElementById('heartBeating')
+    document.getElementById('heartBeatingStart')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
-            animaster().heartBeating(block);
+            animaster().heartBeating().start(block);
         });
+
+    document.getElementById('heartBeatingStop')
+    .addEventListener('click', function () {
+        const block = document.getElementById('heartBeatingBlock');
+        animaster().heartBeating().stop(block);
+    });
+    
 }
 
 function animaster() {
@@ -96,10 +103,21 @@ function animaster() {
         setTimeout(() => {fadeOut(element, duration * (1/3))}, duration * (2/3))
     }
 
-    function heartBeating(element) {
-        scale(element, 500, 1.4)
-        setTimeout(()=> {scale(element,500,1)},500)
-        setTimeout(() => {heartBeating(element)}, 1000)
+    function heartBeating() {
+        return {
+            start: function(element){
+                scale(element, 500, 1.4)
+                phase1 = setInterval(()=> {scale(element,500,1)},500)
+                phase2 = setInterval(() => {scale(element,500,1.4)}, 1000)
+            },
+            stop: function(element){
+                clearInterval(phase1)
+                clearInterval(phase2)
+                //Возвращаем в исходное состояние с анимацией. Можно и без
+                scale(element, 500, 1)
+            }
+        }
+        
     }
 
     return {fadeIn, move, scale, fadeOut, moveAndHide, showAndHide, heartBeating}
