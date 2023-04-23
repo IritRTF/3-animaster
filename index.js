@@ -51,7 +51,13 @@ function addListeners() {
     document.getElementById('moveAndHide')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
-            animaster().moveAndHide(block, 3000, {x: 100, y: 20});
+            animaster().moveAndHide().start(block, 3000, {x: 100, y: 20});
+        });
+    
+    document.getElementById('resetMoveAndHide')
+        .addEventListener('click', function () {
+            const block = document.getElementById('moveAndHideBlock');
+            animaster().moveAndHide().stop(block);
         });
 
     document.getElementById('showAndHide')
@@ -130,12 +136,25 @@ function animaster() {
         element.style.transform = null
     }
 
-    function moveAndHide(element, duration, translation) {
-        const firstPhase = duration * (2 / 5)
-        element.style.transitionDuration = `${firstPhase}ms`
-        element.style.transform = getTransform(translation, null)
-        setTimeout(() => {fadeOut(element,duration * (3 / 5))}, firstPhase)
+    function moveAndHide() {
+        return {
+            start: function (element,duration,translation){
+                const firstPhase = duration * (2 / 5)
+                element.style.transitionDuration = `${firstPhase}ms`
+                element.style.transform = getTransform(translation, null)
+                timeout = setTimeout(() => {fadeOut(element,duration * (3 / 5))}, firstPhase)
+            },
+
+            stop: function (element){
+                element.transitionDuration = null
+                element.style.transform = null
+                clearTimeout(timeout)
+                fadeIn(element, 0)
+            }
+        }
+        
     }
+
 
     function showAndHide(element, duration) {
         fadeIn(element, duration*(1/3))
