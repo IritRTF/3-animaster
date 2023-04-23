@@ -9,8 +9,8 @@ function addListeners() {
 
     document.getElementById('fadeOutPlay')
         .addEventListener('click', function () {
-            const block = document.getElementById('fadeInBlock');
-            animaster().fadeOut(block, 3000);
+            const block = document.getElementById('fadeOutBlock');
+            animaster().fadeOut(block, 5000);
         });
 
     document.getElementById('movePlay')
