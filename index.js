@@ -4,7 +4,8 @@ function addListeners() {
     document.getElementById('fadeInPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeInBlock');
-            animaster().fadeIn(block, 3000);
+            // animaster().fadeIn(block, 3000);
+            animaster().addFadeIn(3000).play(block)
         });
 
     document.getElementById('fadeInReset')
@@ -16,8 +17,10 @@ function addListeners() {
     document.getElementById('fadeOutPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeOutBlock');
-            animaster().fadeOut(block, 3000);
+            // animaster().fadeOut(block, 3000);
+            animaster().addFadeOut(3000).play(block)
         });
+
     document.getElementById('fadeOutReset')
         .addEventListener('click', function () {
             const block = document.getElementById('fadeOutBlock');
@@ -46,7 +49,8 @@ function addListeners() {
     document.getElementById('scalePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('scaleBlock');
-            animaster().scale(block, 1000, 1.25);
+            // animaster().scale(block, 1000, 1.25);
+            animaster().addScale(1000, "1.25").play(block)
         });
 
 
@@ -94,6 +98,27 @@ function animaster() {
     function addMove(duration, coords) {
         _steps.push({
             animation: 'move', duration: duration, params: coords
+        })
+        return this
+    }
+
+    function addScale(duration, ratio) {
+        _steps.push({
+            animation: 'scale', duration: duration, params: ratio
+        })
+        return this
+    }
+
+    function addFadeIn(duration) {
+        _steps.push({
+            animation: 'fadeIn', duration: duration
+        })
+        return this
+    }
+
+    function addFadeOut(duration) {
+        _steps.push({
+            animation: 'fadeOut', duration: duration
         })
         return this
     }
@@ -221,7 +246,10 @@ function animaster() {
         _resetFadeOut,
         _resetMoveAndScale,
         play,
-        addMove
+        addMove,
+        addScale,
+        addFadeIn,
+        addFadeOut
     }
 }
 
