@@ -91,9 +91,9 @@ function addListeners() {
 function animaster() {
     let _steps = []
 
-    function addMove(animation,duration, coords) {
+    function addMove(duration, coords) {
         _steps.push({
-            animation: 'move', duration: duration, coords: coords
+            animation: 'move', duration: duration, params: coords
         })
         return this
     }
@@ -101,7 +101,7 @@ function animaster() {
     function play(element) {
         let skipedTime = 0;
         for (let step of _steps) {
-            setTimeout(() => this[step.animation](element, step.duration, step.coords), skipedTime);
+            setTimeout(() => this[step.animation](element, step.duration, step.params), skipedTime);
             skipedTime += step.duration;
         }
     }
