@@ -24,23 +24,31 @@ function addListeners() {
             animaster()._resetFadeOut(block);
         });
 
+    // document.getElementById('movePlay')
+    //     .addEventListener('click', function () {
+    //         const block = document.getElementById('moveBlock');
+    //         animaster().move(block, 1000, {x: 100, y: 10});
+    //     });
+
     document.getElementById('movePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveBlock');
-            animaster().move(block, 1000, {x: 100, y: 10});
+            animaster().addMove(1000, {x: 20, y: 20}).play(block);
         });
+
+    document.getElementById('moveReset')
+        .addEventListener('click', function () {
+            const block = document.getElementById('moveBlock');
+            animaster()._resetMoveAndScale(block);
+        });
+
 
     document.getElementById('scalePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('scaleBlock');
             animaster().scale(block, 1000, 1.25);
         });
-    
-    document.getElementById('moveReset')
-        .addEventListener('click', function () {
-            const block = document.getElementById('moveBlock');
-            animaster()._resetMoveAndScale(block);
-        });
+
 
     document.getElementById('scaleReset')
         .addEventListener('click', function () {
@@ -53,7 +61,7 @@ function addListeners() {
             const block = document.getElementById('moveAndHideBlock');
             animaster().moveAndHide().start(block, 3000, {x: 100, y: 20});
         });
-    
+
     document.getElementById('resetMoveAndHide')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
@@ -65,7 +73,7 @@ function addListeners() {
             const block = document.getElementById('showAndHideBlock');
             animaster().showAndHide(block, 3000);
         });
-    
+
     document.getElementById('heartBeatingStart')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
@@ -73,14 +81,32 @@ function addListeners() {
         });
 
     document.getElementById('heartBeatingStop')
-    .addEventListener('click', function () {
-        const block = document.getElementById('heartBeatingBlock');
-        animaster().heartBeating().stop(block);
-    });
-    
+        .addEventListener('click', function () {
+            const block = document.getElementById('heartBeatingBlock');
+            animaster().heartBeating().stop(block);
+        });
+
 }
 
 function animaster() {
+    let _steps = []
+
+    function addMove(animation,duration, coords) {
+        _steps.push({
+            animation: 'move', duration: duration, coords: coords
+        })
+        return this
+    }
+
+    function play(element) {
+        let skipedTime = 0;
+        for (let step of _steps) {
+            setTimeout(() => this[step.animation](element, step.duration, step.coords), skipedTime);
+            skipedTime += step.duration;
+        }
+    }
+
+
     /**
      * Блок плавно появляется из прозрачного.
      * @param element — HTMLElement, который надо анимировать
@@ -138,46 +164,65 @@ function animaster() {
 
     function moveAndHide() {
         return {
-            start: function (element,duration,translation){
+            start: function (element, duration, translation) {
                 const firstPhase = duration * (2 / 5)
                 element.style.transitionDuration = `${firstPhase}ms`
                 element.style.transform = getTransform(translation, null)
-                timeout = setTimeout(() => {fadeOut(element,duration * (3 / 5))}, firstPhase)
+                _timeout = setTimeout(() => {
+                    fadeOut(element, duration * (3 / 5))
+                }, firstPhase)
             },
 
-            stop: function (element){
+            stop: function (element) {
                 element.transitionDuration = null
                 element.style.transform = null
-                clearTimeout(timeout)
+                clearTimeout(_timeout)
                 fadeIn(element, 0)
             }
         }
-        
     }
 
 
     function showAndHide(element, duration) {
-        fadeIn(element, duration*(1/3))
-        setTimeout(() => {fadeOut(element, duration * (1/3))}, duration * (2/3))
+        fadeIn(element, duration * (1 / 3))
+        setTimeout(() => {
+            fadeOut(element, duration * (1 / 3))
+        }, duration * (2 / 3))
     }
 
     function heartBeating() {
         return {
-            start: function(element){
+            start: function (element) {
                 scale(element, 500, 1.4)
-                phase1 = setInterval(()=> {scale(element,500,1)},500)
-                phase2 = setInterval(() => {scale(element,500,1.4)}, 1000)
-            },
-            stop: function(element){
-                clearInterval(phase1)
-                clearInterval(phase2)
+                _phase1 = setInterval(() => {
+                    scale(element, 500, 1)
+                }, 500)
+                _phase2 = setInterval(() => {
+                    scale(element, 500, 1.4)
+                }, 1000)
+            }, stop: function (element) {
+                clearInterval(_phase1)
+                clearInterval(_phase2)
                 //Возвращаем в исходное состояние с анимацией. Можно и без
                 scale(element, 500, 1)
             }
         }
     }
 
-    return {fadeIn, move, scale, fadeOut, moveAndHide, showAndHide, heartBeating, _resetFadeIn, _resetFadeOut, _resetMoveAndScale}
+    return {
+        fadeIn,
+        move,
+        scale,
+        fadeOut,
+        moveAndHide,
+        showAndHide,
+        heartBeating,
+        _resetFadeIn,
+        _resetFadeOut,
+        _resetMoveAndScale,
+        play,
+        addMove
+    }
 }
 
 function getTransform(translation, ratio) {
