@@ -200,38 +200,30 @@ function animaster() {
     }  
 
     function addMove(duration, coordinates) {
-        _steps.push({
-            animation: 'move', duration: duration, params: coordinates
-        })
+        _steps.push({ animation: 'move', duration: duration, params: coordinates })
         return this
     }
 
     function play(element) {
-        let skipedTime = 0;
+        let time = 0;
         for (let step of _steps) {
-            setTimeout(() => this[step.animation](element, step.duration, step.params), skipedTime);
-            skipedTime += step.duration;
+            setTimeout(() => this[step.animation](element, step.duration, step.params), time);
+            time += step.duration;
         }
     }
 
     function addScale(duration, ratio) {
-        _steps.push({
-            animation: 'scale', duration: duration, params: ratio
-        })
+        _steps.push({ animation: 'scale', duration: duration, params: ratio })
         return this
     }
 
     function addFadeIn(duration) {
-        _steps.push({
-            animation: 'fadeIn', duration: duration
-        })
+        _steps.push({ animation: 'fadeIn', duration: duration })
         return this
     }
 
     function addFadeOut(duration) {
-        _steps.push({
-            animation: 'fadeOut', duration: duration
-        })
+        _steps.push({ animation: 'fadeOut', duration: duration })
         return this
     }
 
